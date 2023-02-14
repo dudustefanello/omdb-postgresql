@@ -1,0 +1,47 @@
+                                                                                 QUERY PLAN                                                                                  
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=50285.13..52179.31 rows=75767 width=65) (actual time=823.341..888.774 rows=5797 loops=1)
+   Group Key: m.date, i.movie_id, i.name
+   Buffers: shared hit=8662 read=6465, temp read=2636 written=2699
+   ->  Sort  (cost=50285.13..50474.55 rows=75767 width=51) (actual time=823.248..847.881 rows=79723 loops=1)
+         Sort Key: m.date DESC, i.movie_id, i.name
+         Sort Method: external merge  Disk: 5000kB
+         Buffers: shared hit=8655 read=6465, temp read=2636 written=2699
+         ->  Gather  (cost=15230.91..41554.49 rows=75767 width=51) (actual time=642.312..751.719 rows=79723 loops=1)
+               Workers Planned: 2
+               Workers Launched: 2
+               Buffers: shared hit=8646 read=6465, temp read=2011 written=2072
+               ->  Parallel Hash Join  (cost=14230.91..32977.79 rows=31570 width=51) (actual time=638.253..658.164 rows=26574 loops=3)
+                     Hash Cond: (c.person_id = p.id)
+                     Buffers: shared hit=8646 read=6465, temp read=2011 written=2072
+                     ->  Parallel Hash Join  (cost=7954.64..24919.42 rows=31570 width=45) (actual time=177.503..451.531 rows=26574 loops=3)
+                           Hash Cond: (c.movie_id = i.movie_id)
+                           Buffers: shared hit=7761 read=5369
+                           ->  Parallel Seq Scan on casts c  (cost=0.00..13428.48 rows=446748 width=20) (actual time=0.025..129.352 rows=357398 loops=3)
+                                 Buffers: shared hit=4812 read=4149
+                           ->  Parallel Hash  (cost=7906.83..7906.83 rows=3825 width=41) (actual time=168.571..168.576 rows=2128 loops=3)
+                                 Buckets: 8192  Batches: 1  Memory Usage: 576kB
+                                 Buffers: shared hit=2949 read=1220
+                                 ->  Parallel Hash Join  (cost=4217.83..7906.83 rows=3825 width=41) (actual time=110.605..146.104 rows=2128 loops=3)
+                                       Hash Cond: (i.movie_id = m.id)
+                                       Buffers: shared hit=2949 read=1220
+                                       ->  Parallel Seq Scan on movie_aliases_iso i  (cost=0.00..3590.68 rows=20218 width=29) (actual time=0.030..25.130 rows=11356 loops=3)
+                                             Filter: (language = 'fr'::text)
+                                             Rows Removed by Filter: 64970
+                                             Buffers: shared hit=1679 read=228
+                                       ->  Parallel Hash  (cost=3951.46..3951.46 rows=21310 width=12) (actual time=105.288..105.289 rows=12109 loops=3)
+                                             Buckets: 65536  Batches: 1  Memory Usage: 2272kB
+                                             Buffers: shared hit=1270 read=992
+                                             ->  Parallel Seq Scan on movies m  (cost=0.00..3951.46 rows=21310 width=12) (actual time=1.455..94.990 rows=12109 loops=3)
+                                                   Filter: ((date >= '1970-09-15'::date) AND (date <= '1997-11-06'::date))
+                                                   Rows Removed by Filter: 51715
+                                                   Buffers: shared hit=1270 read=992
+                     ->  Parallel Hash  (cost=3389.12..3389.12 rows=157212 width=22) (actual time=122.610..122.610 rows=89087 loops=3)
+                           Buckets: 65536  Batches: 8  Memory Usage: 2464kB
+                           Buffers: shared hit=721 read=1096, temp written=1352
+                           ->  Parallel Seq Scan on people p  (cost=0.00..3389.12 rows=157212 width=22) (actual time=0.023..54.128 rows=89087 loops=3)
+                                 Buffers: shared hit=721 read=1096
+ Planning Time: 1.677 ms
+ Execution Time: 891.140 ms
+(43 rows)
+

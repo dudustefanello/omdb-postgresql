@@ -1,0 +1,46 @@
+                                                                              QUERY PLAN                                                                               
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=43765.80..45659.98 rows=75767 width=65) (actual time=441.185..509.086 rows=5797 loops=1)
+   Group Key: m.date, i.movie_id, i.name
+   Buffers: shared hit=45957 read=932, temp read=2629 written=2680
+   ->  Sort  (cost=43765.80..43955.22 rows=75767 width=51) (actual time=441.113..466.887 rows=79723 loops=1)
+         Sort Key: m.date DESC, i.movie_id, i.name
+         Sort Method: external merge  Disk: 5008kB
+         Buffers: shared hit=45950 read=932, temp read=2629 written=2680
+         ->  Gather  (cost=11494.53..35035.16 rows=75767 width=51) (actual time=303.706..402.390 rows=79723 loops=1)
+               Workers Planned: 1
+               Workers Launched: 1
+               Buffers: shared hit=45941 read=932, temp read=2003 written=2052
+               ->  Parallel Hash Join  (cost=10494.53..26458.46 rows=44569 width=51) (actual time=303.221..333.333 rows=39862 loops=2)
+                     Hash Cond: (c.person_id = p.id)
+                     Buffers: shared hit=45941 read=932, temp read=2003 written=2052
+                     ->  Nested Loop  (cost=4218.26..18359.19 rows=44569 width=45) (actual time=40.837..152.295 rows=39862 loops=2)
+                           Join Filter: (i.movie_id = c.movie_id)
+                           Buffers: shared hit=45014
+                           ->  Parallel Hash Join  (cost=4217.83..7861.58 rows=3825 width=41) (actual time=40.799..74.028 rows=3192 loops=2)
+                                 Hash Cond: (i.movie_id = m.id)
+                                 Buffers: shared hit=4169
+                                 ->  Parallel Seq Scan on movie_aliases_iso i  (cost=0.00..3590.68 rows=20218 width=29) (actual time=0.022..28.210 rows=17034 loops=2)
+                                       Filter: (language = 'fr'::text)
+                                       Rows Removed by Filter: 97456
+                                       Buffers: shared hit=1907
+                                 ->  Parallel Hash  (cost=3951.46..3951.46 rows=21310 width=12) (actual time=34.056..34.057 rows=18163 loops=2)
+                                       Buckets: 65536  Batches: 1  Memory Usage: 2272kB
+                                       Buffers: shared hit=2262
+                                       ->  Parallel Seq Scan on movies m  (cost=0.00..3951.46 rows=21310 width=12) (actual time=0.018..29.455 rows=18163 loops=2)
+                                             Filter: ((date >= '1970-09-15'::date) AND (date <= '1997-11-06'::date))
+                                             Rows Removed by Filter: 77573
+                                             Buffers: shared hit=2262
+                           ->  Index Only Scan using casts_pkey on casts c  (cost=0.43..2.54 rows=16 width=20) (actual time=0.012..0.022 rows=12 loops=6385)
+                                 Index Cond: (movie_id = m.id)
+                                 Heap Fetches: 79723
+                                 Buffers: shared hit=40845
+                     ->  Parallel Hash  (cost=3389.12..3389.12 rows=157212 width=22) (actual time=107.910..107.910 rows=133630 loops=2)
+                           Buckets: 65536  Batches: 8  Memory Usage: 2464kB
+                           Buffers: shared hit=885 read=932, temp written=1340
+                           ->  Parallel Seq Scan on people p  (cost=0.00..3389.12 rows=157212 width=22) (actual time=0.016..37.369 rows=133630 loops=2)
+                                 Buffers: shared hit=885 read=932
+ Planning Time: 2.680 ms
+ Execution Time: 511.332 ms
+(42 rows)
+

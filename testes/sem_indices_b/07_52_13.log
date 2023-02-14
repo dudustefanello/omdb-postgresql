@@ -1,0 +1,52 @@
+                                                                                      QUERY PLAN                                                                                       
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=42388.57..44282.74 rows=75767 width=65) (actual time=616.246..685.747 rows=5797 loops=1)
+   Group Key: m.date, i.movie_id, i.name
+   Buffers: shared hit=39326 read=4295 written=2, temp read=2630 written=2671
+   ->  Sort  (cost=42388.57..42577.99 rows=75767 width=51) (actual time=616.162..642.015 rows=79723 loops=1)
+         Sort Key: m.date DESC, i.movie_id, i.name
+         Sort Method: external merge  Disk: 5000kB
+         Buffers: shared hit=39322 read=4295 written=2, temp read=2630 written=2671
+         ->  Gather  (cost=11548.26..33657.93 rows=75767 width=51) (actual time=419.016..559.278 rows=79723 loops=1)
+               Workers Planned: 1
+               Workers Launched: 1
+               Buffers: shared hit=39322 read=4295 written=2, temp read=2005 written=2044
+               ->  Parallel Hash Join  (cost=10548.26..25081.23 rows=44569 width=51) (actual time=407.048..449.495 rows=39862 loops=2)
+                     Hash Cond: (c.person_id = p.id)
+                     Buffers: shared hit=39322 read=4295 written=2, temp read=2005 written=2044
+                     ->  Nested Loop  (cost=4271.99..16981.96 rows=44569 width=45) (actual time=31.400..190.841 rows=39862 loops=2)
+                           Join Filter: (i.movie_id = c.movie_id)
+                           Buffers: shared hit=38400 read=3358 written=2
+                           ->  Parallel Hash Join  (cost=4271.56..6484.35 rows=3825 width=41) (actual time=31.349..39.846 rows=3192 loops=2)
+                                 Hash Cond: (i.movie_id = m.id)
+                                 Buffers: shared hit=677 read=236
+                                 ->  Parallel Bitmap Heap Scan on movie_aliases_iso i  (cost=646.79..2806.51 rows=20218 width=29) (actual time=10.265..13.123 rows=17034 loops=2)
+                                       Recheck Cond: (language = 'fr'::text)
+                                       Heap Blocks: exact=133
+                                       Buffers: shared hit=248 read=134
+                                       ->  Bitmap Index Scan on teste_movie_aliases_iso_language  (cost=0.00..638.19 rows=34370 width=0) (actual time=2.686..2.687 rows=34069 loops=1)
+                                             Index Cond: (language = 'fr'::text)
+                                             Buffers: shared hit=1 read=96
+                                 ->  Parallel Hash  (cost=3358.40..3358.40 rows=21310 width=12) (actual time=17.536..17.538 rows=18163 loops=2)
+                                       Buckets: 65536  Batches: 1  Memory Usage: 2240kB
+                                       Buffers: shared hit=429 read=102
+                                       ->  Parallel Bitmap Heap Scan on movies m  (cost=775.75..3358.40 rows=21310 width=12) (actual time=1.322..11.062 rows=18163 loops=2)
+                                             Recheck Cond: ((date >= '1970-09-15'::date) AND (date <= '1997-11-06'::date))
+                                             Heap Blocks: exact=388
+                                             Buffers: shared hit=429 read=102
+                                             ->  Bitmap Index Scan on teste_movies_date  (cost=0.00..766.69 rows=36227 width=0) (actual time=2.549..2.549 rows=36326 loops=1)
+                                                   Index Cond: ((date >= '1970-09-15'::date) AND (date <= '1997-11-06'::date))
+                                                   Buffers: shared hit=1 read=102
+                           ->  Index Only Scan using casts_pkey on casts c  (cost=0.43..2.54 rows=16 width=20) (actual time=0.021..0.043 rows=12 loops=6385)
+                                 Index Cond: (movie_id = m.id)
+                                 Heap Fetches: 79723
+                                 Buffers: shared hit=37723 read=3122 written=2
+                     ->  Parallel Hash  (cost=3389.12..3389.12 rows=157212 width=22) (actual time=150.053..150.054 rows=133630 loops=2)
+                           Buckets: 65536  Batches: 8  Memory Usage: 2464kB
+                           Buffers: shared hit=880 read=937, temp written=1336
+                           ->  Parallel Seq Scan on people p  (cost=0.00..3389.12 rows=157212 width=22) (actual time=0.019..68.328 rows=133630 loops=2)
+                                 Buffers: shared hit=880 read=937
+ Planning Time: 1.354 ms
+ Execution Time: 687.927 ms
+(48 rows)
+
